@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
+    <script src="build/react-dom.js"></script>
+    <script src="build/browser.min.js"></script>
+    <script src="build/jquery.min.js"></script>
+    <script src="build/JSXTransformer.js"></script>
+</head>
+<body>
+<div id="example"></div>
+<script type="text/jsx">
+
+    var CommentBox = React.createClass({
+        getInitialState: function () {
+            return {comments:this.props.comments||[]};
+        },
+        componentDidMount:function(){
+
+            this.loadDataFromServer();
+        },
+        handleSubmit:function(c){
+            var comments = this.state.comments;
+            var newComments = comments.concat([c]);
+            this.setState({comments:newComments});
+
+        },
+        loadDataFromServer: function () {
+            $.ajax({
+                url:this.props.url,
+                dataType:"json",
+                success: function (comments) {
+                    this.setState({comments:comments})
+                }.bind(this)
+
+            })
+        },
+        render: function () {
+            return(
+                    <div>
+                    <h1>Comments</h1>
+                            <CommentList comments={this.state.comments}/>
+                            <CommentForm onSubmit={this.handleSubmit} />
+                    </div>
+            )
+        }
+    })
+    var CommentList = React.createClass({
+        render() {
+            var commentsNode = this.props.comments.map(function(comment, index) {
+                return <Comment key={'comment-' + index} author={comment.author}>{comment.body}</Comment>
+            });
+            return (
+                    <div className="comment-list">
+                    {commentsNode}
+                    </div>
+        );
+        }
+    })
+    var CommentForm = React.createClass({
+        d: function (e) {
+            e.preventDefault();
+            var author = ReactDOM.findDOMNode(this.refs.author).value.trim();
+            var body = ReactDOM.findDOMNode(this.refs.body).value.trim();
+            var form = ReactDOM.findDOMNode(this.refs.form);
+//              console.log(author,body);
+            this.props.onSubmit({author:author,body:body})
+            form.reset();
+
+        },
+
+        render: function () {
+            return(
+
+                    <form ref="form" onSubmit={this.d}>
+                    <input type="text" placeholder="your name" ref="author"/>
+                    <input type="text" placeholder="input your comment" ref="body" />
+                    <input type="submit" value="add comment"/>
+                    </form>
+
+            )
+        }
+    })
+
+    var Comment = React.createClass({
+        render: function () {
+            return(
+                            <div>
+                    <div className="comment-body">
+                    {this.props.children}
+                    </div>
+                            <div className="comment-author">
+                    {this.props.author}
+                            </div>
+                    </div>
+
+            )
+        }
+    })
+
+//    var comments = [
+//        {author:"leon",body:"this is my comment"},
+//        {author:"meng",body:"this is not a comment"}
+//    ];
+    ReactDOM.render(<CommentBox url="comments.json"/>,document.getElementById('example'))
+</script>
+<script id="__bs_script__">//<![CDATA[
+document.write("<script async src='http://HOST:3002/browser-sync/browser-sync-client.2.12.8.js'><\/script>".replace("HOST", location.hostname));
+//]]></script>
+</body>
+</html>
+
